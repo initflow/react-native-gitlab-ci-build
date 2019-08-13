@@ -85,6 +85,7 @@ RUN sdkmanager "platform-tools" --verbose && \
     sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" --verbose && \
     sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1" --verbose
 
+
 # ——————————
 # Installs Gradle
 # ——————————
@@ -106,7 +107,7 @@ ENV PATH $PATH:$GRADLE_HOME/bin
 # ——————————
 # Install Node and global packages
 # ——————————
-ENV NODE_VERSION 12.8
+ENV NODE_VERSION 12.8.0
 RUN cd && \
     wget -q http://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz && \
     tar -xzf node-v${NODE_VERSION}-linux-x64.tar.gz && \
