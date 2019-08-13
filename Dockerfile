@@ -19,9 +19,10 @@ RUN apt-get update && \
 
 RUN \
   echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  add-apt-repository -y ppa:webupd8team/java && \
+  add-apt-repository -y ppa:openjdk-r/ppa && \
   apt-get update && \
-  apt-get --assume-yes install default-jdk && \
+  #apt install openjdk-8-jre-headless && \
+  apt-get -y install openjdk-8-jdk && \
   rm -rf /var/lib/apt/lists/* && \
   rm -rf /var/cache/oracle-jdk8-installer
 
