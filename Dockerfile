@@ -47,21 +47,43 @@ RUN dpkg --add-architecture i386 && \
 # Installs Android SDK
 # ——————————
 
-ENV ANDROID_SDK_VERSION 3859397
-ENV ANDROID_SDK_FILENAME sdk-tools-linux-${ANDROID_SDK_VERSION}.zip
-ENV ANDROID_SDK_URL https://dl.google.com/android/repository/${ANDROID_SDK_FILENAME}
-ENV ANDROID_HOME /opt/android-sdk-linux
-ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools/bin
-RUN cd /opt && \
-    wget -q ${ANDROID_SDK_URL} && \
-    unzip ${ANDROID_SDK_FILENAME} -d ./android-sdk-linux && \
-    rm ${ANDROID_SDK_FILENAME} && \
-    printf 'y\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny\ny' | sdkmanager --licenses && \
-    sdkmanager "tools" "platform-tools"  && \
-    sdkmanager "platforms;android-27" "platforms;android-26" "platforms;android-25" "platforms;android-23" && \
-    sdkmanager "build-tools;27.0.3" "build-tools;27.0.0" "build-tools;26.0.2" "build-tools;25.0.3" "build-tools;25.0.2" "build-tools;25.0.0" && \
-    sdkmanager "build-tools;23.0.2" "build-tools;23.0.3" "build-tools;23.0.1" && \
-    sdkmanager "extras;android;m2repository" "extras;google;m2repository"
+ENV VERSION_SDK_TOOLS "28.0.1"
+ENV VERSION_BUILD_TOOLS "28.0.2"
+ENV VERSION_TARGET_SDK "28"
+
+# Prepare System
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get -qq update && \
+    apt-get install -qqy --no-install-recommends curl html2text openjdk-8-jdk libc6-i386 lib32stdc++6 lib32gcc1 lib32ncurses5 lib32z1 unzip && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN rm -f /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure
+
+# Download SDK
+ADD https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip /tools.zip
+#ADD http://dl.google.com/android/repository/tools_r${VERSION_SDK_TOOLS}-linux.zip /tools.zip
+RUN unzip /tools.zip -d /sdk && \
+    rm -v /tools.zip
+
+# Configure PATH
+ENV ANDROID_HOME "/sdk"
+ENV PATH "${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools"
+
+# Accept License
+RUN mkdir -p $ANDROID_HOME/licenses/ && \
+    echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license && \
+    echo "84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
+
+# Install SDK Package
+RUN sdkmanager "platform-tools" --verbose && \
+    sdkmanager "platforms;android-${VERSION_TARGET_SDK}" --verbose && \
+    sdkmanager "build-tools;${VERSION_BUILD_TOOLS}" --verbose && \
+    sdkmanager "extras;android;m2repository" --verbose && \
+    sdkmanager "extras;google;m2repository" --verbose && \
+    sdkmanager "extras;google;google_play_services" --verbose && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.2" --verbose && \
+    sdkmanager "extras;m2repository;com;android;support;constraint;constraint-layout;1.0.1" --verbose
 
 # ——————————
 # Installs Gradle
